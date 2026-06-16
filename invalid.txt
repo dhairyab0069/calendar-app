@@ -1,0 +1,8 @@
+create calendar --name "Work" --timezone America/New_York
+create event "Team Meeting" from 2025-01-15T10:00 to 2025-01-15T11:00
+create event "Meeting" from 10:00
+create calendar --name "Test"
+print 2025-13-45
+edit calendar --name Work
+exit
+

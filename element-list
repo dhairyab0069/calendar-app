@@ -1,0 +1,13 @@
+unnamed package
+calendar.controller
+calendar.controller.command
+calendar.controller.gui
+calendar.controller.gui.eventdata
+calendar.controller.parser
+calendar.controller.util
+calendar.exceptions
+calendar.model
+calendar.view
+calendar.view.gui
+calendar.view.gui.dialogs
+calendar.view.gui.panels
