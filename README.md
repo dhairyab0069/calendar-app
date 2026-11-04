@@ -1,125 +1,225 @@
+# Calendar
 
-# Update: NEED Fixes and updates
-Hi to anyone who is reading this, this project I originally created as part of group assignment for CS5010 (Program Design Implementation) at Northeastern Univerity, which i worked on with my group partner Krish Nagaral(@Blanq-one). I do plan to make certain fixes and migrate from java to rust / other stack to make it run natively(for fun! and also for me to be more consistent). More updates also for readme needed while cleaning up the codebase. While I update the readme for future, here is the old version of readme below:
+[![CI](https://github.com/dhairyab0069/calendar-app/actions/workflows/ci.yml/badge.svg)](https://github.com/dhairyab0069/calendar-app/actions/workflows/ci.yml)
+![Java 11+](https://img.shields.io/badge/Java-11%2B-blue)
+![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green)
 
-# Overview
+A desktop calendar for people who live in more than one timezone. Keep as many calendars
+as you like, each in its own timezone, add one-off and recurring events, copy them between
+calendars, and import or export CSV and iCal. Use it from a graphical interface, an
+interactive prompt, or a script.
 
-In this iteration of this project, you will build a view
-for the calendar application, featuring a graphical user interface.
-This will allow a user to interactively create,edit, and view events in
-a digital calendar. The result of this iteration will be a calendar that
-a user can interact with in a text-based interface, a GUI, as well as use scripting in headless mode.
+<p align="center">
+  <img src="archive/java/GUI%20Main.jpeg" width="760" alt="The Calendar app showing the month view with a calendar list on the left">
+</p>
 
-# 1 Graphical View
+## Contents
 
-## 1.1 General Constraints
+- [Quick start](#quick-start)
+- [Features](#features)
+- [Using the app](#using-the-app)
+- [Command reference](#command-reference)
+- [Import and export](#import-and-export)
+- [Development](#development)
+- [How it is built](#how-it-is-built)
+- [Roadmap: the Rust port](#roadmap-the-rust-port)
+- [Known issues](#known-issues)
+- [Contributing](#contributing)
+- [Credits and license](#credits-and-license)
 
-1. You must use the Java Swing library to build the user interface of this application. To this end, you can use the examples discussed in the view module and any class in the official Java Swing library. You are not allowed to use any component or class that is not part of the JDK. 
+## Quick start
 
-2. The GUI should, at a minimum, support a *month view* of a calendar. A month view shows all the days of the current month. A user can navigate to another month in the future or in the past. You are free to add more views (e.g., weekly view, days view, etc.).
+You need JDK 11 or newer.
 
-3. The GUI must expose features listed and described in the next section.
+```bash
+git clone https://github.com/dhairyab0069/calendar-app.git
+cd calendar-app/archive/java
+./gradlew jar
+java -jar build/libs/calendar-1.0.jar
+```
 
-4. The GUI should have support for multiple calendars in any timezone chosen by the user.
+That opens the app with a calendar called "Personal" in your system timezone, so you can add
+an event straight away. To run it another way:
 
-5. You are expected to handle invalid user input via the GUI gracefully. Graceful error handling means that you must detect the cause of the error and inform the user with a useful message that does not leak implementation details but lets the user know how to fix the error.
+| Mode | Command |
+|---|---|
+| Graphical interface | `java -jar build/libs/calendar-1.0.jar` |
+| Interactive prompt | `java -jar build/libs/calendar-1.0.jar --mode interactive` |
+| Script file | `java -jar build/libs/calendar-1.0.jar --mode headless commands.txt` |
 
-6. The layout of the UI should be reasonable. Things should be in proper proportion, and laid out in a reasonable manner. **Buttons/text fields/labels that are oversized, or haphazardly arranged, even if functional, will result in a point deduction.**
+Any other arguments print an error and quit. The sample scripts
+[`commands.txt`](archive/java/commands.txt) and [`invalid.txt`](archive/java/invalid.txt)
+show a valid run and a run with invalid commands.
 
-7. Each user interaction or user input must be reasonably user-friendly  (e.g. making the user type something when a less error-prone method is  possible is not good UI design). We do not expect snazzy, sophisticated  user-friendly programs. Our standard is: can a user unfamiliar with your code and technical documentation operate the program correctly **without reading your code and technical documentation?**
+## Features
 
-8. Keep in mind that this is a graphical user interface for your program.  It is not a graphical way to use the same interaction as the text mode. The expectations of the user, and what the user is expected to enter, are not the same as when specifying script commands!
+- **Multiple calendars, each with its own timezone.** Events keep their meaning when you
+  move between zones, and copying an event to a calendar in another zone converts it.
+- **Single, all-day and recurring events.** Pick the weekdays, then repeat a number of times or
+  until a date. Each event has a subject, start, end, description, location, and a public or
+  private status.
+- **Edit one, some or all.** Change a single event, this event and every later one, or the whole
+  series.
+- **Copy events** one at a time, everything on a day, or a range of days, into another
+  calendar.
+- **Day, week and month views,** with a Today button and arrows to move through time.
+- **Import and export** CSV and iCal (`.ics`) files, with keyboard shortcuts.
+- **Availability checks** and event listings from the prompt or a script.
+- **Friendly errors** for bad commands, clashing events, invalid dates and unreadable files.
 
-## 1.2 Expected Feature Set
+| Create a calendar | Edit a calendar |
+|---|---|
+| <img src="archive/java/GUI%20Create%20Calendar.png" width="380" alt="The Create Calendar dialog with a name field and a timezone picker"> | <img src="archive/java/GUI%20Edit%20Calendar.png" width="380" alt="The Edit Calendar dialog"> |
 
-The following features must be usable via your graphical user interface.
+<p align="center">
+  <img src="archive/java/GUI%20Create%20Event.png" width="560" alt="The Create Event dialog, with recurring options">
+</p>
 
-1. A user should be able to create a new calendar for a particular timezone.
+## Using the app
 
-2. A user should be able to select a calendar and create, edit, view events for the selected calendar.
+**Everyday tasks in the GUI**
 
-3. A user should know which calendar they are on when interacting with the GUI. The way you distinguish a calendar is upto you. One example would be to color code the different calendars.
+- *Create a calendar:* click **+ Create Calendar**, give it a name and pick a timezone.
+- *Switch calendars:* click one in the **My Calendars** list; everything you do applies to it.
+- *Add an event:* click **+ New Event** or double-click a day. Fill in the subject and times,
+  and tick **Recurring** to choose weekdays and a count or an end date.
+- *Edit an event:* open it, then choose **This event only**, **This and future events** or
+  **All events in series**.
+- *Change the view:* use the **View** menu for Day, Week or Month, and the arrows or **Today** to
+  navigate.
 
-4. A user should not be forced to create a new calendar. Instead, the GUI should allow a user to work with a default calendar in the user's current timezone based on their system setting.
+**Keyboard shortcuts** (Cmd on macOS, Ctrl elsewhere)
 
-5. A user should be able to select a specific day of a month and view all events scheduled on that day in the calendar's timezone.
+| Shortcut | Action |
+|---|---|
+| Cmd/Ctrl + I | Import from CSV |
+| Cmd/Ctrl + Shift + I | Import from iCal |
+| Cmd/Ctrl + E | Export to CSV |
+| Cmd/Ctrl + Shift + E | Export to iCal |
+| Cmd/Ctrl + Q | Quit |
 
-6. A user should be able to create a new event on a selected day of a month. The event can be a single or recurring event. For recurring events, a user should be able to specify the weekdays on which the event will repeat and the frequency in terms of number of occurrences or until an end date.
+[`archive/java/USEME.md`](archive/java/USEME.md) has the full walkthrough.
 
-7. A user should be able to select a specific day of a month and edit events.
+## Command reference
 
-The user should be able to identify a single event and edit it. The user should also be able to identify multiple events with the same name, possibly from a user-specific point in time, and edit them together.
+The prompt and script modes share one command language. Dates are `YYYY-MM-DD`, times are
+`HH:mm`, and date-times are `YYYY-MM-DDTHH:mm`. Weekdays are `M T W R F S U`
+(R is Thursday, S Saturday, U Sunday). Event properties are `subject`, `start`, `end`,
+`description`, `location` and `status`.
 
+| Task | Command |
+|---|---|
+| Create a calendar | `create calendar --name "Work" --timezone America/New_York` |
+| Rename a calendar | `edit calendar --name Work --property name "Work 2025"` |
+| Change its timezone | `edit calendar --name "Work 2025" --property timezone Europe/London` |
+| Switch calendar | `use calendar --name "Work 2025"` |
+| Create an event | `create event "Team Meeting" from 2025-01-15T10:00 to 2025-01-15T11:00` |
+| Create an all-day event | `create event "Company Holiday" on 2025-01-20` |
+| Repeat a number of times | `create event "Standup" from 2025-01-06T09:00 to 2025-01-06T09:30 repeats MWF for 4 times` |
+| Repeat until a date | `create event "Review" from 2025-01-01T15:00 to 2025-01-01T16:00 repeats M until 2025-06-01` |
+| Edit one event | `edit event subject "Team Meeting" from 2025-01-15T10:00 with "Updated Team Meeting"` |
+| Edit this and later events | `edit events location "Standup" from 2025-01-06T09:00 with "Room B"` |
+| Edit a whole series | `edit series description "Review" from 2025-01-06T15:00 with "Monthly team review"` |
+| Copy one event | `copy event "Review" on 2025-01-15T10:00 --target "Work 2025" to 2025-01-17T09:00` |
+| Copy a day | `copy events on 2025-02-01 --target "Work 2025" to 2025-02-05` |
+| Copy a range | `copy events between 2025-03-01 and 2025-03-31 --target "Work 2025" to 2025-08-01` |
+| List a day | `print events on 2025-01-15` |
+| List a range | `print events from 2025-01-15T08:00 to 2025-01-15T17:00` |
+| Check availability | `show status on 2025-01-15T10:30` |
+| Export | `export cal calendar_export.csv` or `export "Work 2025" calendar_export.ics` |
+| Quit | `exit` |
 
-## 1.3 Design Considerations
+In a script file, put one command per line and end with `exit`. Invalid commands are reported
+with an error message.
 
-Carefully design the interaction between a view and a controller,
-and formalize the interactions with view and controller interfaces.
-You may design a single controller that manages the program in
-interactive, headless and GUI modes. Different controllers for different views are also possible if the views are very different from each other.
-However, be mindful of the MVC principles and separation between  the model, view and controller. When designing, always ask: "can I change one part with no/minimal changes to the others?"
+## Import and export
 
-## 1.4 Testing
+- **CSV:** columns `Subject, Start, End, Description, Location, Status`, with ISO date-times.
+- **iCal:** standard `.ics` files, as exported by most calendar apps.
+- Import into the selected calendar from **File > Import Calendar**; the app reports how many
+  events came in. Export from **File > Export Calendar**.
+- File paths are platform independent, so it behaves the same on Windows, macOS and Linux.
 
-Think carefully about which parts of the program require testing. For example, you are not expected to test whether a particular button click produces the desired result. In that sense, testing the actual GUI is optional. However, you should test whether the controller does what it is supposed to in reaction to this happening.
+## Development
 
-# 2 Program Execution
+```bash
+cd archive/java
+./gradlew test               # unit tests (839 of them)
+./gradlew jacocoTestReport   # coverage report in build/reports/jacoco
+./gradlew checkstyleMain     # code style
+./gradlew pitest             # mutation testing
+```
 
-## 2.1 Creating a JAR File
+GitHub Actions runs the Java tests and the Rust checks on every push and pull request. The
+Java build is configured to keep going when a test fails, so CI reads the test reports and
+fails the job itself.
 
-A user should be able to run your application using a JAR file. To create a JAR file run the command ./gradlew jar. This will create a JAR file in the build/libs directory. You can run the jar using the command java -jar build/libs/JARNAME.jar. You can provide arguments after the jar file path.
+## How it is built
 
-You should assume that the user will run your program from this project's root. You must ensure that file paths that your program relies on are platform independent.
+The app follows model-view-controller, and the Rust port keeps the same split.
 
-## 2.2 Command-line arguments
+| Layer | Java package | Rust module | Role |
+|---|---|---|---|
+| Model | `calendar.model` | `model` | Calendars, events, series, timezones, import and export. Knows nothing about the other layers. |
+| View | `calendar.view` | `view` | Console views and the Swing GUI. Shows data; never changes the model. |
+| Controller | `calendar.controller` | `controller` | Parses commands, runs them against the model, and drives the GUI, prompt and script modes. |
 
-Your program (from IntelliJ or the JAR file) should accept command-line inputs. Three command-line inputs are valid:
+- Commands are parsed into typed parameter objects and run through a command registry, so a new
+  command does not touch the parser or the views.
+- The GUI controller is split into small handlers (calendars, events, views) that react to
+  property-change events from the view.
+- An event is identified by subject, start and end; adding the same one twice is an error.
+- Recurring events are expanded into ordinary events that share a series id.
+- [`archive/java/Misc.md`](archive/java/Misc.md) lists the design changes made along the way.
 
-* `java -jar JARNAME.jar --mode headless path-of-script-file`: when invoked in this manner the program should open the script file, execute it and then exit. Invalid commands should be handled gracefully with appropriate error messages. This is how the program worked in the previous iteration.
+```
+archive/java/      the Java app: src, Gradle build, docs, screenshots, sample scripts, Javadoc
+rust/              the Rust port: Cargo crate and PLAN.md
+.github/workflows/ CI for the Rust crate and the Java app
+```
 
-* `java -jar JARNAME.jar --mode interactive`: when invoked in this manner the program should open in an interactive text mode, allowing the user to type the script and execute it one line at a time. This is how the program worked in the previous iteration.
+## Roadmap: the Rust port
 
-* `java -jar JARNAME.jar`: when invoked in this manner the program should open the graphical user interface. This is what will happen if you simply double-click on the jar file.
+The goal is a native version with the same MVC structure.
 
-Any other command-line arguments are invalid: in these cases the program should display an error message suitably and quit.
+| Phase | Scope | Status |
+|---|---|---|
+| 1 | Model layer, with the Java model tests ported (146 tests) | Done |
+| 2 | Command parser and script runner | Next |
+| 3 | CSV and iCal import and export | Planned |
+| 4 | Interactive prompt | Planned |
+| 5 | GUI, probably egui | Planned |
 
-# 3 What to submit
+[`rust/PLAN.md`](rust/PLAN.md) has the decisions, the Java-to-Rust mapping, the test-porting
+table and the open questions. To work on it:
 
-- Submit a res/ folder with the following:
-  - A screenshot showing your GUI. 
-  - A `Misc.md` file with the following information:
-    - `A list of changes to the design of your program, along with a brief justification of each. **Describing changes only in paragraph form will result in a point deduction.**
-    - Which features work and which do not. 
-    - Anything else you need us to know when we grade.
-  - A txt file, commands.txt, with the list of valid commands.
-  - A txt file, invalid.txt with a list of commands where at least one command is invalid.
-- A USEME.md file that contains:
-  - Instructions to run your program in different modes using examples.
-  - a bullet-point list of how to use your GUI to use each operation supported by your program. Screenshots would be helpful, but not necessary.
-- The main method must be in the class 'src/main/java/CalendarRunner.java'.
-- Complete the [anonymous peer evaluation survey](https://forms.gle/11qoosf7ukmVFWuT9). You do not need to take the survey if you are working alone.
+```bash
+cd rust
+cargo test
+cargo clippy --all-targets -- -D warnings
+```
 
-# Grading Criteria
+## Known issues
 
-1. The completeness, layout, and behavior of your GUI.
+These are in the Java app and were found while planning the port:
 
-2. Whether your design aligns with MVC and SOLID principles.
+- CSV import reads the description and location columns in the opposite order from export, so
+  a round trip swaps them.
+- Events are indexed by their start date only, so a multi-day event does not show on its later
+  days.
 
-3. Whether you have addressed issues in the previous version.
+[`rust/PLAN.md`](rust/PLAN.md) lists more, as open questions, with how the Rust version will
+handle each.
 
-4. Well-structured and clean code with relevant documentation.
+## Contributing
 
-5. Avoid code smells wherever relevant.
+Issues and pull requests are welcome. For a larger change, please open an issue first. Run the
+tests before sending a pull request: `./gradlew test` in `archive/java` for the Java app, and
+`cargo test`, `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check` in `rust`
+for the port.
 
-6. Completeness and correctness of your tests as evidenced by running them and coverage metrics for the controller and model.
+## Credits and license
 
-7. Proper access modifiers.
-
-8. Expected formatting style.
-
-## Repository layout
-
-- `src/` is the application and its tests; `build.gradle` builds them.
-- `commands.txt` and `invalid.txt` are the sample command files described above.
-- `archive/javadoc/` holds the Javadoc generated on 2025-11-25, kept for reference. Open `archive/javadoc/index.html` to browse it.
-- Files the tests write while running (`test_calendar.csv`, `build_tmp_export-*.csv` and so on) are git-ignored.
+Built by Dhairya Bhatia and Krish Nagaral ([@Blanq-one](https://github.com/Blanq-one)) for
+CS5010 (Program Design Paradigms) at Northeastern University. Released under the Apache
+License 2.0; see [`LICENSE`](LICENSE).

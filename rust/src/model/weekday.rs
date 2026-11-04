@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::error::{CalendarError, Result};
+use super::error::{CalendarError, Result};
 
 /// A day of the week as used by `repeats MWF ...` in the command language.
 ///

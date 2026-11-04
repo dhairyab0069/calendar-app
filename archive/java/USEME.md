@@ -38,7 +38,7 @@ In interactive mode, you can type commands and see results immediately. Type `ex
 
 To run the application in headless mode with a commands file:
 ```bash
-java -jar build/libs/calendar-1.0.jar --mode headless test_commands.txt
+java -jar build/libs/calendar-1.0.jar --mode headless commands.txt
 ```
 
 The commands file should contain one command per line, with the last command being `exit`.

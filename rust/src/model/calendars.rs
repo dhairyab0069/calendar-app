@@ -5,10 +5,10 @@ use std::collections::HashMap;
 use chrono::{Duration, NaiveDate, NaiveDateTime};
 use chrono_tz::Tz;
 
-use crate::calendar::Calendar;
-use crate::error::{CalendarError, Result};
-use crate::event::{Event, SeriesId, iso_local};
-use crate::zone;
+use super::calendar::Calendar;
+use super::error::{CalendarError, Result};
+use super::event::{Event, SeriesId, iso_local};
+use super::zone;
 
 /// All calendars, in creation order, with one of them "in use".
 ///

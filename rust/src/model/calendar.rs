@@ -5,10 +5,10 @@ use std::collections::BTreeMap;
 use chrono::{Datelike, Duration, NaiveDate, NaiveDateTime};
 use chrono_tz::Tz;
 
-use crate::error::{CalendarError, Result};
-use crate::event::{Event, EventChanges, RecurrenceEnd, SeriesId, iso_local};
-use crate::weekday::Weekday;
-use crate::zone;
+use super::error::{CalendarError, Result};
+use super::event::{Event, EventChanges, RecurrenceEnd, SeriesId, iso_local};
+use super::weekday::Weekday;
+use super::zone;
 
 /// Recurrence expansion gives up after walking this many days (Java's
 /// `maxIterations`). It stops `repeats M for 20000 times` from freezing the app.

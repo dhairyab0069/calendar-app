@@ -1,24 +1,20 @@
-//! Model layer of the calendar app (phase 1 of the Rust port).
+//! A multi-calendar scheduling app, ported from Java to Rust and kept in the same
+//! model-view-controller shape as the original.
 //!
-//! * [`Event`], [`EventChanges`], [`Recurrence`]: the value types.
-//! * [`Calendar`]: one calendar's events, duplicates and recurring series.
-//! * [`Calendars`]: several calendars with timezones, an active one, and the
-//!   copy operations that span two of them.
+//! * [`model`]: calendars, events, recurring series, timezones (phase 1, done).
+//! * [`controller`]: command parsing and execution (phase 2).
+//! * [`view`]: console rendering, later a GUI (phases 2 and 5).
 //!
-//! Parsing, export/import, views and the CLI come in later phases.
+//! Dependencies point one way: the controller uses the model and the view
+//! interface, the view reads the model, and the model knows about neither.
 
-mod calendar;
-mod calendars;
-mod error;
-mod event;
-mod status;
-mod weekday;
-pub mod zone;
+pub mod controller;
+pub mod model;
+pub mod view;
 
-pub use calendar::Calendar;
-pub use calendars::Calendars;
 pub use chrono_tz::Tz;
-pub use error::{CalendarError, Result};
-pub use event::{Event, EventChanges, EventKey, Recurrence, RecurrenceEnd, SeriesId};
-pub use status::EventStatus;
-pub use weekday::Weekday;
+pub use model::zone;
+pub use model::{
+    Calendar, CalendarError, Calendars, Event, EventChanges, EventKey, EventStatus, Recurrence,
+    RecurrenceEnd, Result, SeriesId, Weekday,
+};

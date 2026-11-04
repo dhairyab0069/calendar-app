@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install stable --profile minimal --component clippy,rustfmt && rustup default stable
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+
+  java:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: archive/java
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: ./gradlew test --console=plain
+      # build.gradle sets ignoreFailures = true, so Gradle succeeds even when a test
+      # fails. Read the reports instead.
+      - name: Fail if any Java test failed
+        run: |
+          python3 - <<'PY'
+          import glob, sys, xml.etree.ElementTree as ET
+          tests = failed = 0
+          for path in glob.glob('build/test-results/test/*.xml'):
+              root = ET.parse(path).getroot()
+              tests += int(root.get('tests'))
+              failed += int(root.get('failures')) + int(root.get('errors'))
+          print(f'{tests} tests, {failed} failed')
+          sys.exit(1 if failed or not tests else 0)
+          PY
