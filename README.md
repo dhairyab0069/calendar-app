@@ -9,6 +9,8 @@ as you like, each in its own timezone, add one-off and recurring events, copy th
 calendars, and import or export CSV and iCal. Use it from a graphical interface, an
 interactive prompt, or a script.
 
+**[Try the interactive project page](https://dhairyab0069.github.io/calendar-app-io/)**, a working model of the app as an 80s office desktop, or [download the installers](https://github.com/dhairyab0069/calendar-app/releases/latest).
+
 <p align="center">
   <img src="archive/java/GUI%20Main.jpeg" width="760" alt="The Calendar app showing the month view with a calendar list on the left">
 </p>
