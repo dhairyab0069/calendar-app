@@ -116,3 +116,10 @@ Any other command-line arguments are invalid: in these cases the program should 
 7. Proper access modifiers.
 
 8. Expected formatting style.
+
+## Repository layout
+
+- `src/` is the application and its tests; `build.gradle` builds them.
+- `commands.txt` and `invalid.txt` are the sample command files described above.
+- `archive/javadoc/` holds the Javadoc generated on 2025-11-25, kept for reference. Open `archive/javadoc/index.html` to browse it.
+- Files the tests write while running (`test_calendar.csv`, `build_tmp_export-*.csv` and so on) are git-ignored.
