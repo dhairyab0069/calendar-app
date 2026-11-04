@@ -3,7 +3,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use crate::error::CalendarError;
+use super::error::CalendarError;
 
 /// Whether an event is shown to everyone or restricted. `Public` is the
 /// default for new events, as in Java.

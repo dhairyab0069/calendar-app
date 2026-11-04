@@ -1,8 +1,30 @@
 # Rust port plan
 
-The Java app (CS5010 calendar, MVC, Swing GUI) stays untouched under `src/`.
+The Java app (CS5010 calendar, MVC, Swing GUI) is archived, untouched, under `archive/java/`.
 This folder is the port. It is built in phases; each phase ends with a check
 you can run. Phase 1 (the model) is done and lives in `rust/src`.
+
+## Architecture: still MVC
+
+The port keeps the Java app's model-view-controller split, so the two versions can
+be compared module by module and a change to one layer does not ripple into the
+others.
+
+| Layer | Rust module | Owns | May depend on |
+|---|---|---|---|
+| Model | `model/` | calendars, events, series, timezones, import and export | nothing else in the crate |
+| View | `view/` | the `View` trait, console rendering, later the egui GUI | `model` (read only) |
+| Controller | `controller/` | command parsing, the `Session` that executes commands, the headless, interactive and GUI runners | `model`, and the `View` trait |
+
+- The model never imports `controller` or `view`; a test for that rule is part of
+  phase 2.
+- A view reads model data to display it and reports what the user did. It never
+  changes the model: every change goes through the controller.
+- `Session::execute` returns data (an `Output`), it does not print. The controller
+  hands that result to whichever `View` is active, so console and GUI share the
+  same controller.
+- Phase 1 only fills `model/`; `controller/` and `view/` exist as documented
+  placeholders so the layout is visible from the start.
 
 ## 0. What the Java app is (facts the plan relies on)
 
@@ -48,27 +70,27 @@ you can run. Phase 1 (the model) is done and lives in `rust/src`.
 
 | Java | Rust module | Idiom replacing it |
 |---|---|---|
-| `exceptions.DuplicateEvent/EventNotFound/DuplicateCalendar/CalendarNotFound`, plus the `IllegalArgument/IllegalState` used by the model | `error.rs` `CalendarError` (done) | One enum, `Result<T, CalendarError>`, hand-written `Display` + `std::error::Error`. No `thiserror`: seven variants do not justify a proc-macro. Messages copied from Java. |
-| `exceptions.InvalidCommandException`, `FileExportException` | `command::ParseError`, `export::ExportError` (phases 2, 3) | Same pattern; `From` impls so `?` converts between layers. |
-| `model.Weekday` | `weekday.rs` (done) | Plain enum + `from_char`/`parse_str`; converts to `chrono::Weekday`. |
-| `model.EventStatus` | `status.rs` (done) | Enum + `FromStr` + `Display`; `Default = Public`. |
-| `model.CalendarEvent` + `Builder` | `event.rs` `Event` (done) | Private fields, validating `Event::new`, by-value `with_*`. No builder type: only optional fields exist and they have defaults. `from(event)` is `clone()`. |
+| `exceptions.DuplicateEvent/EventNotFound/DuplicateCalendar/CalendarNotFound`, plus the `IllegalArgument/IllegalState` used by the model | `model/error.rs` `CalendarError` (done) | One enum, `Result<T, CalendarError>`, hand-written `Display` + `std::error::Error`. No `thiserror`: seven variants do not justify a proc-macro. Messages copied from Java. |
+| `exceptions.InvalidCommandException`, `FileExportException` | `controller::ParseError`, `model::ExportError` (phases 2, 3) | Same pattern; `From` impls so `?` converts between layers. |
+| `model.Weekday` | `model/weekday.rs` (done) | Plain enum + `from_char`/`parse_str`; converts to `chrono::Weekday`. |
+| `model.EventStatus` | `model/status.rs` (done) | Enum + `FromStr` + `Display`; `Default = Public`. |
+| `model.CalendarEvent` + `Builder` | `model/event.rs` `Event` (done) | Private fields, validating `Event::new`, by-value `with_*`. No builder type: only optional fields exist and they have defaults. `from(event)` is `clone()`. |
 | Nullable params of `editEvent/editSeries*` | `EventChanges` (done) | Struct of `Option`s with `..Default::default()` instead of six nullable arguments. |
 | `repeatCount` + `repeatUntil` fields and the builder code that clears one when the other is set | `RecurrenceEnd` enum (done) | Make the invalid state unrepresentable. |
 | `CalendarEvent.equals/hashCode` on (subject, start, end) | `EventKey` via `Event::key()` (done) | The rule is named; `Event` has no `==` that ignores half its fields. |
 | `model.CalendarModel` (interface) | none | One implementation, so no trait. Add one only if a second model appears (e.g. a persisted one). |
-| `model.SparseHashCalendar` | `calendars.rs` `Calendars` (done) | Owns `Vec<Calendar>` and an active index. Active calendar by index instead of by name, so rename cannot break it. |
-| `model.SingleCalendarStore` + `CalendarContainer` | `calendar.rs` `Calendar` (done) | One `BTreeMap<NaiveDate, Vec<Event>>` as the only store; the second `eventsBySeries` index is derived from `Event::series`. Mutations are atomic (clone, mutate, restore on error). |
+| `model.SparseHashCalendar` | `model/calendars.rs` `Calendars` (done) | Owns `Vec<Calendar>` and an active index. Active calendar by index instead of by name, so rename cannot break it. |
+| `model.SingleCalendarStore` + `CalendarContainer` | `model/calendar.rs` `Calendar` (done) | One `BTreeMap<NaiveDate, Vec<Event>>` as the only store; the second `eventsBySeries` index is derived from `Event::series`. Mutations are atomic (clone, mutate, restore on error). |
 | Series UUID strings | `SeriesId(u64)` from an atomic counter (done) | `Copy` newtype; no `uuid` dependency. |
-| `controller.util.DateTimeParser` | `command/datetime.rs` (phase 2) | `chrono::NaiveDateTime::parse_from_str` with the two formats. |
-| `controller.parser.*` (`CommandParser`, 14 `*Params`, `ParsedCommand`, `CommandType`) | `command/parse.rs` (phase 2) | One `enum Command` whose variants carry their data; replaces the type tag plus untyped params object plus casts. |
-| `controller.parser.ExportParams` (filename sanitising) | `export.rs` `sanitize_filename` (phase 3) | Plain function. |
-| `controller.command.*` (`Command`, `CommandRegistry`, `CommandContext`) | `command/session.rs` (phase 2) | The registry is a map from enum tag to handler; a `match` on `Command` does that job. `CommandContext` becomes `Context { calendar: Option<String>, zone: Option<Tz> }`. |
-| `controller.CommandHandler` | `command/session.rs` `Session` (phase 2) | Owns `Calendars`; `execute(&mut self, Parsed) -> Result<Output, Error>`. Returns data; it does not print. |
-| `view.ConsoleView`, `DayView`, `WeekView`, `MonthView`, `CalendarView` | `render.rs` (phase 2) | Pure functions returning `String`. The view interface had one real implementation per mode; with outputs as data no trait is needed. |
-| `controller.HeadlessController`, `InteractiveController`, `CalendarController` | `cli.rs` (phases 2, 4) | Two functions over `impl BufRead` / `impl Write`, both feeding `Session::run_line`. Testable without capturing process streams. |
+| `controller.util.DateTimeParser` | `controller/datetime.rs` (phase 2) | `chrono::NaiveDateTime::parse_from_str` with the two formats. |
+| `controller.parser.*` (`CommandParser`, 14 `*Params`, `ParsedCommand`, `CommandType`) | `controller/parse.rs` (phase 2) | One `enum Command` whose variants carry their data; replaces the type tag plus untyped params object plus casts. |
+| `controller.parser.ExportParams` (filename sanitising) | `controller/export_params.rs` `sanitize_filename` (phase 3) | Plain function. |
+| `controller.command.*` (`Command`, `CommandRegistry`, `CommandContext`) | `controller/session.rs` (phase 2) | The registry is a map from enum tag to handler; a `match` on `Command` does that job. `CommandContext` becomes `Context { calendar: Option<String>, zone: Option<Tz> }`. |
+| `controller.CommandHandler` | `controller/session.rs` `Session` (phase 2) | Owns `Calendars`; `execute(&mut self, Parsed) -> Result<Output, Error>`. Returns data; it does not print. |
+| `view.ConsoleView`, `DayView`, `WeekView`, `MonthView`, `CalendarView` | `view/mod.rs` `trait View` + `view/console.rs` (phase 2) | The Java `CalendarView` interface had two real implementations (console and Swing), so the Rust `View` trait stays: the controller hands a `View` the result of each command. The console renderers are pure functions returning `String`. |
+| `controller.HeadlessController`, `InteractiveController`, `CalendarController` | `controller/headless.rs`, `controller/interactive.rs` (phases 2, 4) | Two functions over `impl BufRead` / `impl Write`, both feeding `Session::run_line`. Testable without capturing process streams. |
 | `CalendarApp`, `CalendarRunner` | `main.rs` | Hand-written argv match for the three accepted shapes. |
-| `view.gui.*`, `controller.gui.*` (Swing, `PropertyChange` events, `PropertyType`, `*EventData`) | `gui/` (phase 5) | egui is immediate-mode: the `App` struct holds state and calls `Session`/`Calendars` directly, so the observer plumbing disappears. |
+| `view.gui.*`, `controller.gui.*` (Swing, `PropertyChange` events, `PropertyType`, `*EventData`) | `view/gui/` + `controller/gui.rs` (phase 5) | egui is immediate-mode: the GUI view draws from the model and sends each user action to the controller as a message (the counterpart of `PropertyChange`), which applies it through `Session`. The view never mutates the model. |
 
 ## 2. Key decisions
 
@@ -150,7 +172,7 @@ GUI: recommendation is egui (eframe), added last, after a terminal-only release.
 | 2 Parser + headless runner | `DateTimeParser`, `Command` enum, parser, `Session`, day/week/month rendering, `calendar --mode headless FILE` | Running `commands.txt` prints the same text as the Java app (capture a golden file from the Java run first); `invalid.txt` produces the same errors; `CommandTest`, `CalendarTest` (command cases) and the handler/view parts of `ControllerTest` are ported. |
 | 3 Export and import | CSV and iCal writers, importers, `sanitize_filename`, `export` command | `ExportParamsTest` and the export/import cases of `ModelTest` ported; exported CSV/iCal match Java output (UID and DTSTAMP normalised); round trip CSV to CSV is lossless for the fields that exist. |
 | 4 Interactive CLI | `--mode interactive`, argument validation, usage text | Scripted stdin session gives the same transcript as headless for the same commands; bad arguments behave as decided in open question 8. |
-| 5 GUI | egui app: month/week/day views, calendar list, create/edit with this/forward/all scope, import/export | Every item in README section 1.2 and the USEME GUI workflow can be done by hand; the GUI only calls `Session`/`Calendars`, no logic of its own. |
+| 5 GUI | egui app: month/week/day views, calendar list, create/edit with this/forward/all scope, import/export | Every item in README section 1.2 and the USEME GUI workflow can be done by hand; the GUI view only draws and sends actions to the controller, no logic of its own. |
 
 ## 4. Testing strategy
 

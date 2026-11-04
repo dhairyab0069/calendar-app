@@ -5,9 +5,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use chrono::{NaiveDateTime, Timelike};
 
-use crate::error::{CalendarError, Result};
-use crate::status::EventStatus;
-use crate::weekday::Weekday;
+use super::error::{CalendarError, Result};
+use super::status::EventStatus;
+use super::weekday::Weekday;
 
 /// Identifies one recurring series inside a single [`Calendar`](crate::Calendar).
 ///
