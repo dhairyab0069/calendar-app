@@ -1,3 +1,7 @@
+
+# Update: NEED Fixes and updates
+Hi to anyone who is reading this, this project I originally created as part of group assignment for CS5010 (Program Design Implementation) at Northeastern Univerity, which i worked on with my group partner Krish Nagaral(@Blanq-one). I do plan to make certain fixes and migrate from java to rust / other stack to make it run natively(for fun! and also for me to be more consistent). More updates also for readme needed while cleaning up the codebase. While I update the readme for future, here is the old version of readme below:
+
 # Overview
 
 In this iteration of this project, you will build a view
@@ -112,6 +116,7 @@ Any other command-line arguments are invalid: in these cases the program should 
 7. Proper access modifiers.
 
 8. Expected formatting style.
+
 ## Repository layout
 
 - `src/` is the application and its tests; `build.gradle` builds them.
