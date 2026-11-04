@@ -22,3 +22,6 @@ test.txt
 
 # Rust port build output
 rust/target/
+
+# Installer output
+dist/

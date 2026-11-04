@@ -15,6 +15,7 @@ interactive prompt, or a script.
 
 ## Contents
 
+- [Install](#install)
 - [Quick start](#quick-start)
 - [Features](#features)
 - [Using the app](#using-the-app)
@@ -26,6 +27,21 @@ interactive prompt, or a script.
 - [Known issues](#known-issues)
 - [Contributing](#contributing)
 - [Credits and license](#credits-and-license)
+
+## Install
+
+Download the installer for your system from the
+[latest release](https://github.com/dhairyab0069/calendar-app/releases/latest). No Java is
+needed: each installer bundles its own runtime.
+
+- **macOS:** `Calendar-<version>-macos.dmg`. Open it and drag **Calendar** to Applications.
+  The app is not notarized, so the first launch needs right-click, **Open** (or run
+  `xattr -dr com.apple.quarantine /Applications/Calendar.app`).
+- **Windows:** `Calendar-<version>-windows-x64.exe`. SmartScreen may warn because the
+  installer is unsigned: click **More info**, then **Run anyway**.
+
+The installers are built by GitHub Actions whenever a version tag (`v*`) is pushed. To build
+from source instead, see below.
 
 ## Quick start
 
