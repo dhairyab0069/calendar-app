@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Build output
+build/
+.gradle/
+out/
+bin/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Files the tests write into the working directory
+build_tmp_export-*.csv
+test_calendar.csv
+data.txt
+test.txt
+
