@@ -19,3 +19,6 @@ test_calendar.csv
 data.txt
 test.txt
 
+
+# Rust port build output
+rust/target/

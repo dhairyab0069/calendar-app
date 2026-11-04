@@ -1,0 +1,13 @@
+[package]
+name = "calendar"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+description = "Rust port of the CS5010 calendar app: model layer (phase 1)"
+
+[dependencies]
+# Dates, times and weekdays. `std` only: no `clock` feature, because the model
+# never asks the system for "now" (that keeps every test deterministic).
+chrono = { version = "0.4.45", default-features = false, features = ["std"] }
+# IANA timezone database; replaces java.time.ZoneId for named regions.
+chrono-tz = { version = "0.10.4", default-features = false, features = ["std"] }
